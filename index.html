@@ -52,6 +52,7 @@
         }
 
         .board {
+            position: relative;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 5px;
@@ -74,6 +75,11 @@
             transition: all 0.3s ease;
         }
 
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
         .cell:nth-child(1) {
             background: linear-gradient(45deg, #ff6b6b, #feca57);
             color: white;
@@ -85,8 +91,6 @@
 
         .player {
             position: absolute;
-            top: -10px;
-            right: -10px;
             width: 30px;
             height: 30px;
             background: #ff4757;
@@ -98,6 +102,15 @@
             font-weight: bold;
             border: 3px solid white;
             z-index: 10;
+            transition: transform 0.5s ease;
+        }
+
+        .checkmark {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            color: #28a745;
+            font-size: 1.2rem;
         }
 
         .controls {
@@ -107,6 +120,7 @@
         }
 
         .dice {
+            position: relative;
             width: 80px;
             height: 80px;
             background: white;
@@ -129,14 +143,15 @@
         }
 
         .dice.rolling {
-            animation: roll 1s ease-in-out;
+            animation: rollBounce 1s ease-in-out;
         }
 
-        @keyframes roll {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(90deg) scale(1.2); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            75% { transform: rotate(270deg) scale(1.2); }
+        @keyframes rollBounce {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(20px,-20px) rotate(90deg); }
+            50% { transform: translate(-20px,-20px) rotate(180deg); }
+            75% { transform: translate(-20px,20px) rotate(270deg); }
+            100% { transform: translate(0,0) rotate(360deg); }
         }
 
         .roll-btn {
@@ -377,7 +392,8 @@
             continueBtn: document.getElementById('continueBtn'),
             position: document.getElementById('position'),
             stars: document.getElementById('stars'),
-            correct: document.getElementById('correct')
+            correct: document.getElementById('correct'),
+            player: null
         };
 
         // 初始化遊戲
@@ -391,20 +407,29 @@
         // 創建棋盤
         function createBoard() {
             elements.board.innerHTML = '';
+            gameState.completed = new Array(36).fill(false);
             for (let i = 0; i < 36; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                cell.textContent = i === 0 ? '起點' : i === 35 ? '終點' : i;
-                
-                if (i === 0) {
-                    const player = document.createElement('div');
-                    player.className = 'player';
-                    player.textContent = '🚀';
-                    cell.appendChild(player);
-                }
-                
+                cell.dataset.index = i;
+                cell.textContent = i === 0 ? '起點' : i + 1;
                 elements.board.appendChild(cell);
             }
+
+            elements.player = document.createElement('div');
+            elements.player.className = 'player';
+            elements.player.textContent = '🚀';
+            elements.board.appendChild(elements.player);
+            positionPlayer(gameState.playerPosition);
+        }
+
+        function positionPlayer(index) {
+            const cell = elements.board.querySelector(`.cell[data-index="${index}"]`);
+            const cellRect = cell.getBoundingClientRect();
+            const boardRect = elements.board.getBoundingClientRect();
+            const x = cellRect.left - boardRect.left + cellRect.width / 2 - 15;
+            const y = cellRect.top - boardRect.top + cellRect.height / 2 - 15;
+            elements.player.style.transform = `translate(${x}px, ${y}px)`;
         }
 
         // 更新統計資料
@@ -444,33 +469,20 @@
         // 移動玩家
         function movePlayer() {
             const oldPosition = gameState.playerPosition;
-            const newPosition = Math.min(gameState.playerPosition + gameState.diceValue, 35);
-            gameState.playerPosition = newPosition;
-            
-            // 移除舊位置的玩家
-            const oldCell = elements.board.children[oldPosition];
-            const oldPlayer = oldCell.querySelector('.player');
-            if (oldPlayer) {
-                oldPlayer.remove();
+            let newPosition = oldPosition + gameState.diceValue;
+            if (newPosition >= 36) {
+                newPosition %= 36;
+                gameState.stars += 10; // lap bonus
+                alert('🎉 完成一圈！獲得10顆星星！');
             }
-            
-            // 添加新位置的玩家
-            const newCell = elements.board.children[newPosition];
-            const player = document.createElement('div');
-            player.className = 'player';
-            player.textContent = '🚀';
-            newCell.appendChild(player);
-            
+            gameState.playerPosition = newPosition;
+
+            positionPlayer(newPosition);
             updateStats();
-            
-            // 延遲顯示字卡
+
             setTimeout(() => {
-                if (newPosition === 35) {
-                    showWinMessage();
-                } else {
-                    showQuestionCard();
-                }
-            }, 500);
+                showQuestionCard();
+            }, 600);
         }
 
         // 顯示問題卡片
@@ -524,6 +536,14 @@
                 gameState.correctAnswers++;
                 elements.result.textContent = '🎉 答對了！獲得一顆星星！';
                 elements.result.className = 'result show correct';
+                if (!gameState.completed[gameState.playerPosition]) {
+                    const cell = elements.board.querySelector(`.cell[data-index="${gameState.playerPosition}"]`);
+                    const mark = document.createElement('span');
+                    mark.className = 'checkmark';
+                    mark.textContent = '✔';
+                    cell.appendChild(mark);
+                    gameState.completed[gameState.playerPosition] = true;
+                }
             } else {
                 elements.result.textContent = '😊 再接再厲！';
                 elements.result.className = 'result show wrong';
@@ -539,13 +559,7 @@
             gameState.currentQuestion = null;
         }
 
-        // 顯示勝利訊息
-        function showWinMessage() {
-            alert(`🎉 恭喜完成遊戲！\n總共獲得 ${gameState.stars} 顆星星！\n答對了 ${gameState.correctAnswers} 題！`);
-            resetGame();
-        }
-
-        // 重置遊戲
+        // 重置遊戲（目前未使用）
         function resetGame() {
             gameState.playerPosition = 0;
             gameState.stars = 0;
