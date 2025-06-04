@@ -55,6 +55,7 @@
             position: relative;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
             gap: 5px;
             padding: 20px;
             background: #e8f5e8;
@@ -85,7 +86,7 @@
             color: white;
         }
 
-        .cell:nth-child(36) {
+        .cell:nth-child(20) {
             background: linear-gradient(45deg, #a8e6cf, #88d8c0);
         }
 
@@ -405,16 +406,31 @@
         }
 
         // 創建棋盤
+        const ringPositions = [
+            // 上排
+            { r: 1, c: 1 }, { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 1, c: 5 }, { r: 1, c: 6 },
+            // 右側
+            { r: 2, c: 6 }, { r: 3, c: 6 }, { r: 4, c: 6 }, { r: 5, c: 6 },
+            // 下排
+            { r: 6, c: 6 }, { r: 6, c: 5 }, { r: 6, c: 4 }, { r: 6, c: 3 }, { r: 6, c: 2 }, { r: 6, c: 1 },
+            // 左側
+            { r: 5, c: 1 }, { r: 4, c: 1 }, { r: 3, c: 1 }, { r: 2, c: 1 }
+        ];
+
+        const BOARD_LENGTH = ringPositions.length;
+
         function createBoard() {
             elements.board.innerHTML = '';
-            gameState.completed = new Array(36).fill(false);
-            for (let i = 0; i < 36; i++) {
+            gameState.completed = new Array(BOARD_LENGTH).fill(false);
+            ringPositions.forEach((pos, i) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.index = i;
                 cell.textContent = i === 0 ? '起點' : i + 1;
+                cell.style.gridRow = pos.r;
+                cell.style.gridColumn = pos.c;
                 elements.board.appendChild(cell);
-            }
+            });
 
             elements.player = document.createElement('div');
             elements.player.className = 'player';
@@ -470,8 +486,8 @@
         function movePlayer() {
             const oldPosition = gameState.playerPosition;
             let newPosition = oldPosition + gameState.diceValue;
-            if (newPosition >= 36) {
-                newPosition %= 36;
+            if (newPosition >= BOARD_LENGTH) {
+                newPosition %= BOARD_LENGTH;
                 gameState.stars += 10; // lap bonus
                 alert('🎉 完成一圈！獲得10顆星星！');
             }
