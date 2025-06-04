@@ -218,6 +218,20 @@
             margin: 20px 0;
         }
 
+        .char-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .speak-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
         .question {
             font-size: 1.3rem;
             margin-bottom: 30px;
@@ -378,8 +392,15 @@
     <!-- 字卡模態框 -->
     <div class="modal" id="modal">
         <div class="card">
+
             <div id="bossIcon" class="boss-icon hidden">👹</div>
             <div class="chinese-char" id="chineseChar"></div>
+
+            <div class="char-wrapper">
+                <div class="chinese-char" id="chineseChar"></div>
+                <button class="speak-btn" id="speakBtn" aria-label="播放發音">🎵</button>
+            </div>
+
             <div class="question">請選擇正確的注音</div>
             
             <div class="options" id="options">
@@ -476,6 +497,7 @@
             modal: document.getElementById('modal'),
             bossIcon: document.getElementById('bossIcon'),
             chineseChar: document.getElementById('chineseChar'),
+            speakBtn: document.getElementById('speakBtn'),
             options: document.getElementById('options'),
             result: document.getElementById('result'),
             continueBtn: document.getElementById('continueBtn'),
@@ -625,6 +647,8 @@
 
             elements.chineseChar.textContent = randomQuestion.char;
             elements.chineseChar.onclick = () => speak(randomQuestion.char);
+            elements.speakBtn.onclick = () => speak(randomQuestion.char);
+            speak(randomQuestion.char);
 
             // 清空並重新創建選項
             elements.options.innerHTML = '';

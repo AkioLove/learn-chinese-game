@@ -5,6 +5,7 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 ## How to Play
 
 1. Open `index.html` in your browser.
+
 2. Choose your character token.
 3. Click `擲骰子` to roll the dice and watch the token move.
 4. When you land on a square, a flashcard appears with a Chinese character and three zhuyin options.
