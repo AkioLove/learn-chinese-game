@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>Learn Chinese Game</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 20px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      grid-template-rows: repeat(4, 60px);
+      gap: 4px;
+      position: relative;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: #fff;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .piece {
+      width: 40px;
+      height: 40px;
+      background: gold;
+      border-radius: 50%;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .flashcard {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 2px solid #333;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .flashcard button {
+      margin: 5px;
+    }
+    .stars {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="board">
+      <div
+        v-for="(c,i) in cells"
+        :key="i"
+        class="cell"
+        :style="{ gridRow: c.row, gridColumn: c.col }"
+      >
+        <div v-if="position===i" class="piece"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button @click="roll" :disabled="moving || showing">擲骰子</button>
+      <div class="stars">⭐ {{ stars }}</div>
+    </div>
+    <div v-if="showing" class="flashcard">
+      <div style="font-size:32px;margin-bottom:10px;">{{ card.char }}</div>
+      <div>
+        <button v-for="(o,idx) in card.options" :key="idx" @click="choose(o)">{{ o }}</button>
+      </div>
+    </div>
+  </div>
+<script type="module">
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      cells: [
+        {row:4,col:1}, {row:4,col:2}, {row:4,col:3}, {row:4,col:4},
+        {row:3,col:4}, {row:2,col:4}, {row:1,col:4}, {row:1,col:3},
+        {row:1,col:2}, {row:1,col:1}, {row:2,col:1}, {row:3,col:1}
+      ],
+      position: 0,
+      stars: 0,
+      moving: false,
+      showing: false,
+      card: {},
+      cards: [
+        { char:'白', correct:'ㄅㄞˊ', options:['ㄅㄞˊ','ㄅㄧˇ','ㄅㄠˊ']},
+        { char:'大', correct:'ㄉㄚˋ', options:['ㄉㄚˋ','ㄅㄞˊ','ㄒㄧㄠˇ']},
+        { char:'小', correct:'ㄒㄧㄠˇ', options:['ㄉㄚˋ','ㄒㄧㄠˇ','ㄔㄤˊ']},
+        { char:'長', correct:'ㄔㄤˊ', options:['ㄔㄤˊ','ㄉㄚˋ','ㄉㄨㄢˇ']},
+        { char:'短', correct:'ㄉㄨㄢˇ', options:['ㄉㄨㄢˇ','ㄔㄤˊ','ㄒㄧㄠˇ']}
+      ]
+    };
+  },
+  methods: {
+    roll() {
+      const steps = Math.floor(Math.random()*6)+1;
+      this.animateDice(steps);
+    },
+    animateDice(steps) {
+      this.moving = true;
+      let count = 0;
+      const move = () => {
+        this.position = (this.position + 1) % this.cells.length;
+        count++;
+        if(this.position === 0) this.stars += 10;
+        if(count < steps) {
+          setTimeout(move, 400);
+        } else {
+          this.moving = false;
+          this.showFlashcard();
+        }
+      };
+      move();
+    },
+    showFlashcard() {
+      this.card = this.cards[Math.floor(Math.random()*this.cards.length)];
+      this.showing = true;
+    },
+    choose(option) {
+      if(option === this.card.correct) this.stars += 1;
+      this.showing = false;
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
