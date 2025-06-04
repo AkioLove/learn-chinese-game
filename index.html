@@ -549,7 +549,7 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.index = i;
-                if (i === BOARD_LENGTH - 1) {
+                if (i % 4 === 0) {
                     cell.classList.add('boss-cell');
                     cell.textContent = '👹';
                 } else {
