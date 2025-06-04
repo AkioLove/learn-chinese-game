@@ -7,7 +7,7 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 1. Open `index.html` in your browser.
 2. Click `擲骰子` to roll the dice and watch the token move.
 3. When you land on a square, a flashcard appears with a Chinese character and three zhuyin options.
-4. Choose the correct zhuyin to earn ⭐ points.
+4. Choose the correct zhuyin to earn ⭐ points. The phonetic symbols are shown vertically in standard bopomofo style.
 5. Squares you answer correctly are marked with a ✔.
 6. Completing a lap around the board awards an extra +10 ⭐.
 
