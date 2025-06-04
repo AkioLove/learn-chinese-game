@@ -252,13 +252,6 @@
             text-orientation: upright;
         }
 
-        .note {
-            font-size: 1.2rem;
-            position: absolute;
-            right: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
 
         .option:hover {
             background: #e9ecef;
@@ -571,7 +564,7 @@
             gameState.answered = false;
 
             elements.chineseChar.textContent = randomQuestion.char;
-            speak(randomQuestion.char);
+            elements.chineseChar.onclick = () => speak(randomQuestion.char);
 
             // 清空並重新創建選項
             elements.options.innerHTML = '';
@@ -579,13 +572,8 @@
             optionOrder.forEach(option => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'option';
-                optionElement.innerHTML = `<span class="zhuyin">${option}</span><span class="note">🎵</span>`;
+                optionElement.innerHTML = `<span class="zhuyin">${option}</span>`;
                 optionElement.addEventListener('click', () => selectAnswer(option));
-                const note = optionElement.querySelector('.note');
-                note.addEventListener('click', e => {
-                    e.stopPropagation();
-                    speak(option);
-                });
                 elements.options.appendChild(optionElement);
             });
             
