@@ -226,8 +226,8 @@
 
         .options {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row;
+            justify-content: center;
             gap: 15px;
         }
 
@@ -240,12 +240,24 @@
             line-height: 1.2;
             cursor: pointer;
             transition: all 0.3s ease;
-            writing-mode: vertical-rl;
-            text-orientation: upright;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+        }
+
+        .zhuyin {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+
+        .note {
+            font-size: 1.2rem;
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .option:hover {
@@ -522,7 +534,7 @@
             randomQuestion.options.forEach(option => {
                 const optionElement = document.createElement('div');
                 optionElement.className = 'option';
-                optionElement.textContent = option;
+                optionElement.innerHTML = `<span class="zhuyin">${option}</span><span class="note">🎵</span>`;
                 optionElement.addEventListener('click', () => selectAnswer(option));
                 elements.options.appendChild(optionElement);
             });
