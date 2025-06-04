@@ -311,6 +311,33 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
+        .boss-cell {
+            background: linear-gradient(45deg, #ff9f1c, #ffbf69);
+            color: white;
+        }
+
+        .boss-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .char-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .char-option {
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .char-option:hover {
+            transform: scale(1.2);
+        }
+
         .hidden {
             display: none;
         }
@@ -351,6 +378,7 @@
     <!-- 字卡模態框 -->
     <div class="modal" id="modal">
         <div class="card">
+            <div id="bossIcon" class="boss-icon hidden">👹</div>
             <div class="chinese-char" id="chineseChar"></div>
             <div class="question">請選擇正確的注音</div>
             
@@ -363,6 +391,14 @@
         </div>
     </div>
 
+    <!-- 選擇角色模態框 -->
+    <div class="modal" id="charModal">
+        <div class="card">
+            <h2>選擇角色</h2>
+            <div class="char-options" id="charOptions"></div>
+        </div>
+    </div>
+
     <script>
         // 遊戲狀態
         let gameState = {
@@ -372,7 +408,11 @@
             diceValue: 1,
             isRolling: false,
             currentQuestion: null,
-            answered: false
+            answered: false,
+            playerIcon: '🚀',
+            inBossFight: false,
+            bossStreak: 0,
+            bossDefeated: false
         };
 
         // 中文字題庫
@@ -434,10 +474,13 @@
             dice: document.getElementById('dice'),
             rollBtn: document.getElementById('rollBtn'),
             modal: document.getElementById('modal'),
+            bossIcon: document.getElementById('bossIcon'),
             chineseChar: document.getElementById('chineseChar'),
             options: document.getElementById('options'),
             result: document.getElementById('result'),
             continueBtn: document.getElementById('continueBtn'),
+            charModal: document.getElementById('charModal'),
+            charOptions: document.getElementById('charOptions'),
             position: document.getElementById('position'),
             stars: document.getElementById('stars'),
             correct: document.getElementById('correct'),
@@ -459,6 +502,8 @@
             updateStats();
             elements.rollBtn.addEventListener('click', rollDice);
             elements.continueBtn.addEventListener('click', continueGame);
+            elements.rollBtn.disabled = true;
+            showCharacterModal();
         }
 
         // 創建棋盤
@@ -482,7 +527,12 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.index = i;
-                cell.textContent = i === 0 ? '起點' : i + 1;
+                if (i === BOARD_LENGTH - 1) {
+                    cell.classList.add('boss-cell');
+                    cell.textContent = '👹';
+                } else {
+                    cell.textContent = i === 0 ? '起點' : i + 1;
+                }
                 cell.style.gridRow = pos.r;
                 cell.style.gridColumn = pos.c;
                 elements.board.appendChild(cell);
@@ -490,7 +540,7 @@
 
             elements.player = document.createElement('div');
             elements.player.className = 'player';
-            elements.player.textContent = '🚀';
+            elements.player.textContent = gameState.playerIcon;
             elements.board.appendChild(elements.player);
             positionPlayer(gameState.playerPosition);
         }
@@ -553,8 +603,18 @@
             updateStats();
 
             setTimeout(() => {
-                showQuestionCard();
+                if (newPosition === BOARD_LENGTH - 1 && !gameState.bossDefeated) {
+                    startBossFight();
+                } else {
+                    showQuestionCard();
+                }
             }, 600);
+        }
+
+        function startBossFight() {
+            gameState.inBossFight = true;
+            gameState.bossStreak = 0;
+            showQuestionCard();
         }
 
         // 顯示問題卡片
@@ -576,11 +636,18 @@
                 optionElement.addEventListener('click', () => selectAnswer(option));
                 elements.options.appendChild(optionElement);
             });
-            
+
             // 重置結果顯示
             elements.result.classList.remove('show');
             elements.continueBtn.classList.remove('show');
-            
+
+            if (gameState.inBossFight) {
+                elements.bossIcon.textContent = '👹';
+                elements.bossIcon.classList.remove('hidden');
+            } else {
+                elements.bossIcon.classList.add('hidden');
+            }
+
             // 顯示模態框
             elements.modal.classList.add('show');
         }
@@ -588,7 +655,7 @@
         // 選擇答案
         function selectAnswer(answer) {
             if (gameState.answered) return;
-            
+
             gameState.answered = true;
             const isCorrect = answer === gameState.currentQuestion.correct;
             
@@ -604,33 +671,85 @@
                 optionEl.style.pointerEvents = 'none';
             });
             
-            // 顯示結果
-            if (isCorrect) {
-                gameState.stars++;
-                gameState.correctAnswers++;
-                elements.result.textContent = '🎉 答對了！獲得一顆星星！';
-                elements.result.className = 'result show correct';
-                if (!gameState.completed[gameState.playerPosition]) {
-                    const cell = elements.board.querySelector(`.cell[data-index="${gameState.playerPosition}"]`);
-                    const mark = document.createElement('span');
-                    mark.className = 'checkmark';
-                    mark.textContent = '✔';
-                    cell.appendChild(mark);
-                    gameState.completed[gameState.playerPosition] = true;
+            if (gameState.inBossFight) {
+                if (isCorrect) {
+                    gameState.bossStreak++;
+                    elements.result.textContent = `答對了！(${gameState.bossStreak}/3)`;
+                    elements.result.className = 'result show correct';
+                    if (gameState.bossStreak >= 3) {
+                        elements.result.textContent = '🎉 打敗魔王！';
+                        elements.bossIcon.textContent = '🏆';
+                        gameState.bossDefeated = true;
+                        gameState.inBossFight = false;
+                        const bossCell = elements.board.querySelector(`.cell[data-index="${BOARD_LENGTH - 1}"]`);
+                        if (bossCell && !bossCell.querySelector('.checkmark')) {
+                            const mark = document.createElement('span');
+                            mark.className = 'checkmark';
+                            mark.textContent = '✔';
+                            bossCell.appendChild(mark);
+                        }
+                        elements.continueBtn.classList.add('show');
+                    } else {
+                        setTimeout(showQuestionCard, 800);
+                    }
+                } else {
+                    elements.result.textContent = '💥 被魔王擊敗！退後十步！';
+                    elements.result.className = 'result show wrong';
+                    elements.bossIcon.textContent = '💀';
+                    gameState.inBossFight = false;
+                    gameState.bossStreak = 0;
+                    gameState.playerPosition = (gameState.playerPosition - 10 + BOARD_LENGTH) % BOARD_LENGTH;
+                    positionPlayer(gameState.playerPosition);
+                    updateStats();
+                    elements.continueBtn.classList.add('show');
                 }
             } else {
-                elements.result.textContent = '😊 再接再厲！';
-                elements.result.className = 'result show wrong';
+                if (isCorrect) {
+                    gameState.stars++;
+                    gameState.correctAnswers++;
+                    elements.result.textContent = '🎉 答對了！獲得一顆星星！';
+                    elements.result.className = 'result show correct';
+                    if (!gameState.completed[gameState.playerPosition]) {
+                        const cell = elements.board.querySelector(`.cell[data-index="${gameState.playerPosition}"]`);
+                        const mark = document.createElement('span');
+                        mark.className = 'checkmark';
+                        mark.textContent = '✔';
+                        cell.appendChild(mark);
+                        gameState.completed[gameState.playerPosition] = true;
+                    }
+                } else {
+                    elements.result.textContent = '😊 再接再厲！';
+                    elements.result.className = 'result show wrong';
+                }
+                elements.continueBtn.classList.add('show');
+                updateStats();
             }
-            
-            elements.continueBtn.classList.add('show');
-            updateStats();
         }
 
         // 繼續遊戲
         function continueGame() {
             elements.modal.classList.remove('show');
             gameState.currentQuestion = null;
+            elements.bossIcon.classList.add('hidden');
+            elements.bossIcon.textContent = '👹';
+        }
+
+        function showCharacterModal() {
+            const icons = ['🚀','🐱','🐶','🐰'];
+            elements.charOptions.innerHTML = '';
+            icons.forEach(icon => {
+                const el = document.createElement('span');
+                el.className = 'char-option';
+                el.textContent = icon;
+                el.addEventListener('click', () => {
+                    gameState.playerIcon = icon;
+                    elements.player.textContent = icon;
+                    elements.charModal.classList.remove('show');
+                    elements.rollBtn.disabled = false;
+                });
+                elements.charOptions.appendChild(el);
+            });
+            elements.charModal.classList.add('show');
         }
 
         // 重置遊戲（目前未使用）
