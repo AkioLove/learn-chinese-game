@@ -433,7 +433,8 @@
             playerIcon: '🚀',
             inBossFight: false,
             bossStreak: 0,
-            bossDefeated: false
+            bossDefeated: false,
+            rollCounter: 0
         };
 
         // 中文字題庫
@@ -621,11 +622,15 @@
             }
             gameState.playerPosition = newPosition;
 
+            // 記錄投骰次數
+            gameState.rollCounter++;
+
             positionPlayer(newPosition);
             updateStats();
 
             setTimeout(() => {
-                if (newPosition % 4 === 0) {
+                if (gameState.rollCounter >= 3) {
+                    gameState.rollCounter = 0;
                     startBossFight();
                 } else {
                     showQuestionCard();
@@ -782,6 +787,7 @@
             gameState.stars = 0;
             gameState.correctAnswers = 0;
             gameState.diceValue = 1;
+            gameState.rollCounter = 0;
             elements.dice.textContent = '1';
             createBoard();
             updateStats();
