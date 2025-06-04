@@ -10,6 +10,7 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 4. Choose the correct zhuyin to earn ⭐ points. The phonetic symbols are shown vertically in standard bopomofo style.
 5. Squares you answer correctly are marked with a ✔.
 6. Completing a lap around the board awards an extra +10 ⭐.
+7. Click the 🎵 icon to hear each reading, or listen automatically when a card opens.
 
 ## Tech
 

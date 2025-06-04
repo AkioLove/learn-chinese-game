@@ -417,6 +417,15 @@
             player: null
         };
 
+        // 播放語音
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'zh-TW';
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
         // 初始化遊戲
         function initGame() {
             createBoard();
@@ -526,9 +535,10 @@
             const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
             gameState.currentQuestion = randomQuestion;
             gameState.answered = false;
-            
+
             elements.chineseChar.textContent = randomQuestion.char;
-            
+            speak(randomQuestion.char);
+
             // 清空並重新創建選項
             elements.options.innerHTML = '';
             randomQuestion.options.forEach(option => {
@@ -536,6 +546,11 @@
                 optionElement.className = 'option';
                 optionElement.innerHTML = `<span class="zhuyin">${option}</span><span class="note">🎵</span>`;
                 optionElement.addEventListener('click', () => selectAnswer(option));
+                const note = optionElement.querySelector('.note');
+                note.addEventListener('click', e => {
+                    e.stopPropagation();
+                    speak(option);
+                });
                 elements.options.appendChild(optionElement);
             });
             
