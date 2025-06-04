@@ -1,145 +1,563 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>Learn Chinese Game</title>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 20px;
-    }
-    .board {
-      display: grid;
-      grid-template-columns: repeat(4, 60px);
-      grid-template-rows: repeat(4, 60px);
-      gap: 4px;
-      position: relative;
-    }
-    .cell {
-      width: 60px;
-      height: 60px;
-      background: #fff;
-      border: 1px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    .piece {
-      width: 40px;
-      height: 40px;
-      background: gold;
-      border-radius: 50%;
-    }
-    .controls {
-      margin-top: 20px;
-    }
-    button {
-      padding: 8px 16px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .flashcard {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border: 2px solid #333;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-    .flashcard button {
-      margin: 5px;
-    }
-    .stars {
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中文學習大富翁</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .stat-item {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .stars {
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            padding: 20px;
+            background: #e8f5e8;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: white;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cell:nth-child(1) {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+        }
+
+        .cell:nth-child(36) {
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+        }
+
+        .player {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: #ff4757;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border: 3px solid white;
+            z-index: 10;
+        }
+
+        .controls {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid #4a90e2;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dice:hover {
+            transform: scale(1.1);
+            background: #4a90e2;
+            color: white;
+        }
+
+        .dice.rolling {
+            animation: roll 1s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            75% { transform: rotate(270deg) scale(1.2); }
+        }
+
+        .roll-btn {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 20px;
+        }
+
+        .roll-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .roll-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .chinese-char {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4a90e2;
+            margin: 20px 0;
+        }
+
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .option.wrong {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.correct {
+            color: #28a745;
+        }
+
+        .result.wrong {
+            color: #dc3545;
+        }
+
+        .continue-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .continue-btn.show {
+            display: inline-block;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div id="app">
-    <div class="board">
-      <div
-        v-for="(c,i) in cells"
-        :key="i"
-        class="cell"
-        :style="{ gridRow: c.row, gridColumn: c.col }"
-      >
-        <div v-if="position===i" class="piece"></div>
-      </div>
+    <div class="game-container">
+        <div class="header">
+            <h1>🎯 中文學習大富翁 🎯</h1>
+            <p>走格子學中文，收集星星得分數！</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div>位置</div>
+                <div id="position">1</div>
+            </div>
+            <div class="stat-item">
+                <div>星星</div>
+                <div class="stars"><span id="stars">0</span> ⭐</div>
+            </div>
+            <div class="stat-item">
+                <div>答對</div>
+                <div id="correct">0</div>
+            </div>
+        </div>
+
+        <div class="board" id="board">
+            <!-- 棋盤格子將由 JavaScript 生成 -->
+        </div>
+
+        <div class="controls">
+            <div class="dice" id="dice">1</div>
+            <button class="roll-btn" id="rollBtn">擲骰子</button>
+        </div>
     </div>
-    <div class="controls">
-      <button @click="roll" :disabled="moving || showing">擲骰子</button>
-      <div class="stars">⭐ {{ stars }}</div>
+
+    <!-- 字卡模態框 -->
+    <div class="modal" id="modal">
+        <div class="card">
+            <div class="chinese-char" id="chineseChar"></div>
+            <div class="question">請選擇正確的注音</div>
+            
+            <div class="options" id="options">
+                <!-- 選項將由 JavaScript 生成 -->
+            </div>
+
+            <div class="result" id="result"></div>
+            <button class="continue-btn" id="continueBtn">繼續遊戲</button>
+        </div>
     </div>
-    <div v-if="showing" class="flashcard">
-      <div style="font-size:32px;margin-bottom:10px;">{{ card.char }}</div>
-      <div>
-        <button v-for="(o,idx) in card.options" :key="idx" @click="choose(o)">{{ o }}</button>
-      </div>
-    </div>
-  </div>
-<script type="module">
-const { createApp } = Vue;
-createApp({
-  data() {
-    return {
-      cells: [
-        {row:4,col:1}, {row:4,col:2}, {row:4,col:3}, {row:4,col:4},
-        {row:3,col:4}, {row:2,col:4}, {row:1,col:4}, {row:1,col:3},
-        {row:1,col:2}, {row:1,col:1}, {row:2,col:1}, {row:3,col:1}
-      ],
-      position: 0,
-      stars: 0,
-      moving: false,
-      showing: false,
-      card: {},
-      cards: [
-        { char:'白', correct:'ㄅㄞˊ', options:['ㄅㄞˊ','ㄅㄧˇ','ㄅㄠˊ']},
-        { char:'大', correct:'ㄉㄚˋ', options:['ㄉㄚˋ','ㄅㄞˊ','ㄒㄧㄠˇ']},
-        { char:'小', correct:'ㄒㄧㄠˇ', options:['ㄉㄚˋ','ㄒㄧㄠˇ','ㄔㄤˊ']},
-        { char:'長', correct:'ㄔㄤˊ', options:['ㄔㄤˊ','ㄉㄚˋ','ㄉㄨㄢˇ']},
-        { char:'短', correct:'ㄉㄨㄢˇ', options:['ㄉㄨㄢˇ','ㄔㄤˊ','ㄒㄧㄠˇ']}
-      ]
-    };
-  },
-  methods: {
-    roll() {
-      const steps = Math.floor(Math.random()*6)+1;
-      this.animateDice(steps);
-    },
-    animateDice(steps) {
-      this.moving = true;
-      let count = 0;
-      const move = () => {
-        this.position = (this.position + 1) % this.cells.length;
-        count++;
-        if(this.position === 0) this.stars += 10;
-        if(count < steps) {
-          setTimeout(move, 400);
-        } else {
-          this.moving = false;
-          this.showFlashcard();
+
+    <script>
+        // 遊戲狀態
+        let gameState = {
+            playerPosition: 0,
+            stars: 0,
+            correctAnswers: 0,
+            diceValue: 1,
+            isRolling: false,
+            currentQuestion: null,
+            answered: false
+        };
+
+        // 中文字題庫
+        const questions = [
+            { char: '白', correct: 'ㄅㄞˊ', options: ['ㄅㄞˊ', 'ㄆㄞˊ', 'ㄇㄞˊ'] },
+            { char: '大', correct: 'ㄉㄚˋ', options: ['ㄉㄚˋ', 'ㄊㄚˋ', 'ㄌㄚˋ'] },
+            { char: '小', correct: 'ㄒㄧㄠˇ', options: ['ㄒㄧㄠˇ', 'ㄓㄧㄠˇ', 'ㄔㄧㄠˇ'] },
+            { char: '長', correct: 'ㄔㄤˊ', options: ['ㄔㄤˊ', 'ㄓㄤˊ', 'ㄕㄤˊ'] },
+            { char: '短', correct: 'ㄉㄨㄢˇ', options: ['ㄉㄨㄢˇ', 'ㄊㄨㄢˇ', 'ㄋㄨㄢˇ'] },
+            { char: '高', correct: 'ㄍㄠ', options: ['ㄍㄠ', 'ㄎㄠ', 'ㄏㄠ'] },
+            { char: '低', correct: 'ㄉㄧ', options: ['ㄉㄧ', 'ㄊㄧ', 'ㄋㄧ'] },
+            { char: '好', correct: 'ㄏㄠˇ', options: ['ㄏㄠˇ', 'ㄍㄠˇ', 'ㄎㄠˇ'] },
+            { char: '壞', correct: 'ㄏㄨㄞˋ', options: ['ㄏㄨㄞˋ', 'ㄍㄨㄞˋ', 'ㄎㄨㄞˋ'] },
+            { char: '快', correct: 'ㄎㄨㄞˋ', options: ['ㄎㄨㄞˋ', 'ㄍㄨㄞˋ', 'ㄏㄨㄞˋ'] },
+            { char: '慢', correct: 'ㄇㄢˋ', options: ['ㄇㄢˋ', 'ㄋㄢˋ', 'ㄌㄢˋ'] },
+            { char: '新', correct: 'ㄒㄧㄣ', options: ['ㄒㄧㄣ', 'ㄓㄧㄣ', 'ㄔㄧㄣ'] },
+            { char: '舊', correct: 'ㄐㄧㄡˋ', options: ['ㄐㄧㄡˋ', 'ㄑㄧㄡˋ', 'ㄒㄧㄡˋ'] },
+            { char: '多', correct: 'ㄉㄨㄛ', options: ['ㄉㄨㄛ', 'ㄊㄨㄛ', 'ㄋㄨㄛ'] },
+            { char: '少', correct: 'ㄕㄠˇ', options: ['ㄕㄠˇ', 'ㄓㄠˇ', 'ㄔㄠˇ'] }
+        ];
+
+        // DOM 元素
+        const elements = {
+            board: document.getElementById('board'),
+            dice: document.getElementById('dice'),
+            rollBtn: document.getElementById('rollBtn'),
+            modal: document.getElementById('modal'),
+            chineseChar: document.getElementById('chineseChar'),
+            options: document.getElementById('options'),
+            result: document.getElementById('result'),
+            continueBtn: document.getElementById('continueBtn'),
+            position: document.getElementById('position'),
+            stars: document.getElementById('stars'),
+            correct: document.getElementById('correct')
+        };
+
+        // 初始化遊戲
+        function initGame() {
+            createBoard();
+            updateStats();
+            elements.rollBtn.addEventListener('click', rollDice);
+            elements.continueBtn.addEventListener('click', continueGame);
         }
-      };
-      move();
-    },
-    showFlashcard() {
-      this.card = this.cards[Math.floor(Math.random()*this.cards.length)];
-      this.showing = true;
-    },
-    choose(option) {
-      if(option === this.card.correct) this.stars += 1;
-      this.showing = false;
-    }
-  }
-}).mount('#app');
-</script>
+
+        // 創建棋盤
+        function createBoard() {
+            elements.board.innerHTML = '';
+            for (let i = 0; i < 36; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = i === 0 ? '起點' : i === 35 ? '終點' : i;
+                
+                if (i === 0) {
+                    const player = document.createElement('div');
+                    player.className = 'player';
+                    player.textContent = '🚀';
+                    cell.appendChild(player);
+                }
+                
+                elements.board.appendChild(cell);
+            }
+        }
+
+        // 更新統計資料
+        function updateStats() {
+            elements.position.textContent = gameState.playerPosition + 1;
+            elements.stars.textContent = gameState.stars;
+            elements.correct.textContent = gameState.correctAnswers;
+        }
+
+        // 擲骰子
+        function rollDice() {
+            if (gameState.isRolling) return;
+            
+            gameState.isRolling = true;
+            elements.rollBtn.disabled = true;
+            elements.dice.classList.add('rolling');
+            
+            const rollDuration = 1000;
+            const rollInterval = 100;
+            let elapsed = 0;
+            
+            const rollAnimation = setInterval(() => {
+                gameState.diceValue = Math.floor(Math.random() * 6) + 1;
+                elements.dice.textContent = gameState.diceValue;
+                elapsed += rollInterval;
+                
+                if (elapsed >= rollDuration) {
+                    clearInterval(rollAnimation);
+                    elements.dice.classList.remove('rolling');
+                    gameState.isRolling = false;
+                    elements.rollBtn.disabled = false;
+                    movePlayer();
+                }
+            }, rollInterval);
+        }
+
+        // 移動玩家
+        function movePlayer() {
+            const oldPosition = gameState.playerPosition;
+            const newPosition = Math.min(gameState.playerPosition + gameState.diceValue, 35);
+            gameState.playerPosition = newPosition;
+            
+            // 移除舊位置的玩家
+            const oldCell = elements.board.children[oldPosition];
+            const oldPlayer = oldCell.querySelector('.player');
+            if (oldPlayer) {
+                oldPlayer.remove();
+            }
+            
+            // 添加新位置的玩家
+            const newCell = elements.board.children[newPosition];
+            const player = document.createElement('div');
+            player.className = 'player';
+            player.textContent = '🚀';
+            newCell.appendChild(player);
+            
+            updateStats();
+            
+            // 延遲顯示字卡
+            setTimeout(() => {
+                if (newPosition === 35) {
+                    showWinMessage();
+                } else {
+                    showQuestionCard();
+                }
+            }, 500);
+        }
+
+        // 顯示問題卡片
+        function showQuestionCard() {
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            gameState.currentQuestion = randomQuestion;
+            gameState.answered = false;
+            
+            elements.chineseChar.textContent = randomQuestion.char;
+            
+            // 清空並重新創建選項
+            elements.options.innerHTML = '';
+            randomQuestion.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', () => selectAnswer(option));
+                elements.options.appendChild(optionElement);
+            });
+            
+            // 重置結果顯示
+            elements.result.classList.remove('show');
+            elements.continueBtn.classList.remove('show');
+            
+            // 顯示模態框
+            elements.modal.classList.add('show');
+        }
+
+        // 選擇答案
+        function selectAnswer(answer) {
+            if (gameState.answered) return;
+            
+            gameState.answered = true;
+            const isCorrect = answer === gameState.currentQuestion.correct;
+            
+            // 標記所有選項
+            const optionElements = elements.options.querySelectorAll('.option');
+            optionElements.forEach(optionEl => {
+                const optionText = optionEl.textContent;
+                if (optionText === gameState.currentQuestion.correct) {
+                    optionEl.classList.add('correct');
+                } else if (optionText === answer && !isCorrect) {
+                    optionEl.classList.add('wrong');
+                }
+                optionEl.style.pointerEvents = 'none';
+            });
+            
+            // 顯示結果
+            if (isCorrect) {
+                gameState.stars++;
+                gameState.correctAnswers++;
+                elements.result.textContent = '🎉 答對了！獲得一顆星星！';
+                elements.result.className = 'result show correct';
+            } else {
+                elements.result.textContent = '😊 再接再厲！';
+                elements.result.className = 'result show wrong';
+            }
+            
+            elements.continueBtn.classList.add('show');
+            updateStats();
+        }
+
+        // 繼續遊戲
+        function continueGame() {
+            elements.modal.classList.remove('show');
+            gameState.currentQuestion = null;
+        }
+
+        // 顯示勝利訊息
+        function showWinMessage() {
+            alert(`🎉 恭喜完成遊戲！\n總共獲得 ${gameState.stars} 顆星星！\n答對了 ${gameState.correctAnswers} 題！`);
+            resetGame();
+        }
+
+        // 重置遊戲
+        function resetGame() {
+            gameState.playerPosition = 0;
+            gameState.stars = 0;
+            gameState.correctAnswers = 0;
+            gameState.diceValue = 1;
+            elements.dice.textContent = '1';
+            createBoard();
+            updateStats();
+        }
+
+        // 啟動遊戲
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
 </body>
 </html>
