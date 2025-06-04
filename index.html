@@ -625,7 +625,7 @@
             updateStats();
 
             setTimeout(() => {
-                if (newPosition === BOARD_LENGTH - 1 && !gameState.bossDefeated) {
+                if (newPosition % 4 === 0) {
                     startBossFight();
                 } else {
                     showQuestionCard();
