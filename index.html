@@ -81,9 +81,13 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
-        .cell:nth-child(1) {
+        .start-cell {
             background: linear-gradient(45deg, #ff6b6b, #feca57);
             color: white;
+        }
+
+        .end-cell {
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
         }
 
         .cell:nth-child(20) {
@@ -567,9 +571,11 @@ function createBoard() {
             cell.dataset.col = c;
             cell.dataset.index = idx;
             if (r === 0 && c === 0) {
-                cell.textContent = '起點';
+                cell.textContent = '🚩';
+                cell.classList.add('start-cell');
             } else if (r === GRID_SIZE - 1 && c === GRID_SIZE - 1) {
-                cell.textContent = '終點';
+                cell.textContent = '🏁';
+                cell.classList.add('end-cell');
             } else {
                 cell.textContent = idx + 1;
             }
