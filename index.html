@@ -501,7 +501,11 @@
             answered: false,
             playerIcon: "🚀",
             completed: [],
-            revealed: []
+            revealed: [],
+            fairyRow: null,
+            fairyCol: null,
+            fairyFound: false,
+            showGoalDirection: false
         };
 
         // 中文字題庫
@@ -632,7 +636,22 @@ function createBoard() {
     revealAround(gameState.row, gameState.col);
     const endIdx = (GRID_SIZE - 1) * GRID_SIZE + (GRID_SIZE - 1);
     gameState.revealed[endIdx] = true;
+    placeFairy();
     updateFog();
+}
+
+function placeFairy() {
+    let r, c;
+    do {
+        r = Math.floor(Math.random() * GRID_SIZE);
+        c = Math.floor(Math.random() * GRID_SIZE);
+    } while ((r === 0 && c === 0) || (r === GRID_SIZE - 1 && c === GRID_SIZE - 1));
+    gameState.fairyRow = r;
+    gameState.fairyCol = c;
+    const idx = r * GRID_SIZE + c;
+    const cell = elements.board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    cell.textContent = '🧚';
+    gameState.revealed[idx] = true;
 }
 
 function positionPlayer() {
@@ -675,6 +694,10 @@ function updateFog() {
 }
 
 function checkGoalVisibility() {
+    if (!gameState.showGoalDirection) {
+        elements.goalArrow.style.display = 'none';
+        return;
+    }
     const boardRect = elements.board.getBoundingClientRect();
     const endCell = elements.board.querySelector('.end-cell');
     const endRect = endCell.getBoundingClientRect();
@@ -718,6 +741,12 @@ function chooseDirection(dir) {
     positionPlayer();
     revealAround(row, col);
     updateFog();
+    if (!gameState.fairyFound && row === gameState.fairyRow && col === gameState.fairyCol) {
+        gameState.fairyFound = true;
+        gameState.showGoalDirection = true;
+        alert('🧚 小仙子：終點在右下角喔！');
+        checkGoalVisibility();
+    }
     updateStats();
     disableDirectionButtons();
     showQuestionCard();
