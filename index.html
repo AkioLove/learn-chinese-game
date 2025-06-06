@@ -24,7 +24,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
+            overflow: auto;
         }
 
         .header {
@@ -52,13 +52,15 @@
         }
 
         .board {
+            --cell-size: 100px;
             position: relative;
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: repeat(6, 1fr);
+            grid-template-columns: repeat(6, var(--cell-size));
+            grid-template-rows: repeat(6, var(--cell-size));
             gap: 5px;
             padding: 20px;
             background: #e8f5e8;
+            overflow: auto;
         }
 
         .cell {
@@ -608,6 +610,7 @@ function positionPlayer() {
     const x = cellRect.left - boardRect.left + cellRect.width / 2 - 15;
     const y = cellRect.top - boardRect.top + cellRect.height / 2 - 15;
     elements.player.style.transform = `translate(${x}px, ${y}px)`;
+    cell.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
 }
 
 function revealAround(row, col) {
