@@ -138,7 +138,7 @@
             font-weight: bold;
             border: 3px solid white;
             z-index: 10;
-            transition: transform 0.5s ease;
+            transition: none;
         }
 
         .checkmark {
@@ -596,6 +596,7 @@ function initGame() {
     showDirections();
     elements.board.addEventListener('scroll', checkGoalVisibility);
     window.addEventListener('resize', checkGoalVisibility);
+    window.addEventListener('resize', positionPlayer);
     elements.board.addEventListener('touchstart', onTouchStart, { passive: false });
     elements.board.addEventListener('touchmove', onTouchMove, { passive: false });
     elements.board.addEventListener('touchend', onTouchEnd, { passive: false });
@@ -657,16 +658,11 @@ function placeFairy() {
 function positionPlayer() {
     const selector = `.cell[data-row="${gameState.row}"][data-col="${gameState.col}"]`;
     const cell = elements.board.querySelector(selector);
-
-    const update = () => {
-        const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.player.offsetWidth / 2;
-        const y = cell.offsetTop + cell.offsetHeight / 2 - elements.player.offsetHeight / 2;
-        elements.player.style.transform = `translate(${x}px, ${y}px)`;
-        checkGoalVisibility();
-    };
-
+    const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.player.offsetWidth / 2;
+    const y = cell.offsetTop + cell.offsetHeight / 2 - elements.player.offsetHeight / 2;
+    elements.player.style.transform = `translate(${x}px, ${y}px)`;
     cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-    requestAnimationFrame(update);
+    checkGoalVisibility();
 }
 
 function revealAround(row, col) {
@@ -819,6 +815,7 @@ function continueGame() {
     elements.modal.classList.remove('show');
     gameState.currentQuestion = null;
     showDirections();
+    positionPlayer();
     if (gameState.row === GRID_SIZE - 1 && gameState.col === GRID_SIZE - 1) {
         alert('🎉 抵達終點！');
     }
