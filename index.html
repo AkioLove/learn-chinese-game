@@ -234,6 +234,12 @@
             cursor: not-allowed;
         }
 
+        .quiz-toggle {
+            margin-left: 10px;
+            font-size: 1rem;
+            vertical-align: middle;
+        }
+
 
         .modal {
             position: fixed;
@@ -458,6 +464,7 @@
             <button class="dir-btn" id="downBtn">↓</button>
             <button class="dir-btn" id="leftBtn">←</button>
             <button class="dir-btn" id="rightBtn">→</button>
+            <label class="quiz-toggle"><input type="checkbox" id="quizToggle" checked> 問答模式</label>
         </div>
     </div>
 
@@ -505,7 +512,8 @@
             fairyRow: null,
             fairyCol: null,
             fairyFound: false,
-            showGoalDirection: false
+            showGoalDirection: false,
+            quizMode: true
         };
 
         // 中文字題庫
@@ -572,7 +580,8 @@ const elements = {
     leftBtn: document.getElementById('leftBtn'),
     rightBtn: document.getElementById('rightBtn'),
     player: null,
-    goalArrow: document.getElementById('goalArrow')
+    goalArrow: document.getElementById('goalArrow'),
+    quizToggle: document.getElementById('quizToggle')
 };
 
 function speak(text) {
@@ -587,11 +596,15 @@ function speak(text) {
 function initGame() {
     createBoard();
     updateStats();
+    gameState.quizMode = elements.quizToggle.checked;
     elements.continueBtn.addEventListener('click', continueGame);
     elements.upBtn.addEventListener('click', () => chooseDirection('up'));
     elements.downBtn.addEventListener('click', () => chooseDirection('down'));
     elements.leftBtn.addEventListener('click', () => chooseDirection('left'));
     elements.rightBtn.addEventListener('click', () => chooseDirection('right'));
+    elements.quizToggle.addEventListener('change', () => {
+        gameState.quizMode = elements.quizToggle.checked;
+    });
     showCharacterModal();
     showDirections();
     elements.board.addEventListener('scroll', checkGoalVisibility);
@@ -744,7 +757,11 @@ function chooseDirection(dir) {
     }
     updateStats();
     disableDirectionButtons();
-    showQuestionCard();
+    if (gameState.quizMode) {
+        showQuestionCard();
+    } else {
+        continueGame();
+    }
 }
 
 function showQuestionCard() {
