@@ -657,17 +657,16 @@ function placeFairy() {
 function positionPlayer() {
     const selector = `.cell[data-row="${gameState.row}"][data-col="${gameState.col}"]`;
     const cell = elements.board.querySelector(selector);
-    const x = cell.offsetLeft + cell.offsetWidth / 2 - 15;
-    const y = cell.offsetTop + cell.offsetHeight / 2 - 15;
 
-    const maxX = elements.board.scrollWidth - elements.player.offsetWidth;
-    const maxY = elements.board.scrollHeight - elements.player.offsetHeight;
-    const clampedX = Math.max(0, Math.min(x, maxX));
-    const clampedY = Math.max(0, Math.min(y, maxY));
+    const update = () => {
+        const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.player.offsetWidth / 2;
+        const y = cell.offsetTop + cell.offsetHeight / 2 - elements.player.offsetHeight / 2;
+        elements.player.style.transform = `translate(${x}px, ${y}px)`;
+        checkGoalVisibility();
+    };
 
-    elements.player.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
-    cell.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
-    checkGoalVisibility();
+    cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    requestAnimationFrame(update);
 }
 
 function revealAround(row, col) {
