@@ -370,6 +370,11 @@
             z-index: 1000;
         }
 
+        /* Ensure overlay stays hidden when the hidden class is applied */
+        .battle-overlay.hidden {
+            display: none;
+        }
+
         .battle-container {
             display: flex;
             align-items: center;
