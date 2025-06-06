@@ -17,7 +17,7 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 
 ## Tech
 
-- [Vue 3](https://vuejs.org/) via CDN
-- Plain HTML & CSS, no build step required
+- Pure HTML, CSS and vanilla JavaScript
+- No external CDN dependencies, so it works offline
 
 Enjoy learning!

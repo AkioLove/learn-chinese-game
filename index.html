@@ -387,7 +387,6 @@
             font-size: 4rem;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -563,59 +562,30 @@
             }
         }
 
-        // Boss battle animations
+        // Boss battle animations (simplified to avoid external dependencies)
         function showBattleAnimation(callback) {
             elements.battlePlayer.textContent = gameState.playerIcon;
             elements.battleOverlay.classList.remove('hidden');
-            anime.timeline({
-                complete: () => {
-                    elements.battleOverlay.classList.add('hidden');
-                    if (callback) callback();
-                }
-            }).add({
-                targets: '#battlePlayer',
-                translateX: [-200, 0],
-                opacity: [0, 1],
-                easing: 'easeOutBack',
-                duration: 600
-            }).add({
-                targets: '#battleBoss',
-                translateX: [200, 0],
-                opacity: [0, 1],
-                easing: 'easeOutBack',
-                duration: 600
-            }, 0).add({
-                targets: '.battle-vs',
-                scale: [0, 1],
-                opacity: [0, 1],
-                easing: 'easeOutBack',
-                duration: 400
-            }, 0);
+            // Show the overlay briefly, then continue
+            setTimeout(() => {
+                elements.battleOverlay.classList.add('hidden');
+                if (callback) callback();
+            }, 1000);
         }
 
         function showBossVictoryAnimation() {
             elements.battleOverlay.classList.remove('hidden');
-            anime({
-                targets: '#battleBoss',
-                scale: [1, 0],
-                rotate: [0, 360],
-                easing: 'easeInBack',
-                duration: 1000,
-                complete: () => elements.battleOverlay.classList.add('hidden')
-            });
+            setTimeout(() => {
+                elements.battleOverlay.classList.add('hidden');
+            }, 1000);
         }
 
         function showPlayerDefeatAnimation() {
             elements.battlePlayer.textContent = gameState.playerIcon;
             elements.battleOverlay.classList.remove('hidden');
-            anime({
-                targets: '#battlePlayer',
-                scale: [1, 0],
-                rotate: [-45, -720],
-                easing: 'easeInBack',
-                duration: 1000,
-                complete: () => elements.battleOverlay.classList.add('hidden')
-            });
+            setTimeout(() => {
+                elements.battleOverlay.classList.add('hidden');
+            }, 1000);
         }
 
         // 初始化遊戲
