@@ -592,6 +592,9 @@ function initGame() {
     showDirections();
     elements.board.addEventListener('scroll', checkGoalVisibility);
     window.addEventListener('resize', checkGoalVisibility);
+    elements.board.addEventListener('touchstart', onTouchStart, { passive: false });
+    elements.board.addEventListener('touchmove', onTouchMove, { passive: false });
+    elements.board.addEventListener('touchend', onTouchEnd, { passive: false });
     checkGoalVisibility();
 }
 
@@ -805,6 +808,37 @@ function showCharacterModal() {
         elements.charOptions.appendChild(el);
     });
     elements.charModal.classList.add('show');
+}
+
+let touchStartX = null;
+let touchStartY = null;
+
+function onTouchStart(e) {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}
+
+function onTouchMove(e) {
+    if (touchStartX === null) return;
+    e.preventDefault();
+}
+
+function onTouchEnd(e) {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    const threshold = 30;
+    if (Math.max(absX, absY) > threshold) {
+        if (absX > absY) {
+            chooseDirection(dx > 0 ? 'right' : 'left');
+        } else {
+            chooseDirection(dy > 0 ? 'down' : 'up');
+        }
+    }
+    touchStartX = touchStartY = null;
 }
 
 document.addEventListener('DOMContentLoaded', initGame);

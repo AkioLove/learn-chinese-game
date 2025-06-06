@@ -15,6 +15,7 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 8. Completing a lap around the board awards an extra +10 ⭐.
 9. A boss waits on the final square. Answer three questions in a row to defeat it! A wrong answer shows a losing icon and moves you back ten spaces.
 10. Click the 🎵 icon to hear each reading, or listen automatically when a card opens.
+11. On touch devices, swipe across the board to move your character.
 
 ## Tech
 
