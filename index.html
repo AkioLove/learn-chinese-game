@@ -161,6 +161,30 @@
             transition: none;
         }
 
+        .npc, .companion {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: none;
+        }
+
+        .companion {
+            background: #ffa502;
+            border-radius: 50%;
+            color: white;
+            border: 2px solid white;
+            z-index: 9;
+        }
+
+        .npc {
+            pointer-events: none;
+            z-index: 5;
+        }
+
         .controls {
             padding: 20px;
             text-align: center;
@@ -525,7 +549,10 @@
             fairyCol: null,
             fairyFound: false,
             showGoalDirection: false,
-            quizMode: true
+            quizMode: true,
+            team: [],
+            npcs: [],
+            unpicked: []
         };
 
         // 中文字題庫
@@ -627,6 +654,7 @@ function initGame() {
     window.addEventListener('resize', checkGoalVisibility);
     window.addEventListener('resize', positionPlayer);
     window.addEventListener('resize', positionFairy);
+    window.addEventListener('resize', positionTeamMembers);
     elements.board.addEventListener('touchstart', onTouchStart, { passive: false });
     elements.board.addEventListener('touchmove', onTouchMove, { passive: false });
     elements.board.addEventListener('touchend', onTouchEnd, { passive: false });
@@ -639,6 +667,8 @@ function createBoard() {
     elements.board.innerHTML = '';
     gameState.completed = new Array(BOARD_LENGTH).fill(false);
     gameState.revealed = new Array(BOARD_LENGTH).fill(false);
+    gameState.team = [];
+    gameState.npcs = [];
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const idx = r * GRID_SIZE + c;
@@ -663,6 +693,7 @@ function createBoard() {
     elements.player.className = 'player';
     elements.player.textContent = gameState.playerIcon;
     elements.board.appendChild(elements.player);
+    gameState.team.push({ row: gameState.row, col: gameState.col, element: elements.player });
     positionPlayer();
     revealAround(gameState.row, gameState.col);
     const endIdx = (GRID_SIZE - 1) * GRID_SIZE + (GRID_SIZE - 1);
@@ -702,23 +733,67 @@ function moveFairyTowardGoal() {
     updateFog();
 }
 
+function spawnNPCs() {
+    gameState.unpicked.forEach(icon => {
+        let r, c;
+        do {
+            r = Math.floor(Math.random() * GRID_SIZE);
+            c = Math.floor(Math.random() * GRID_SIZE);
+        } while ((r === 0 && c === 0) || (r === GRID_SIZE - 1 && c === GRID_SIZE - 1) || gameState.npcs.some(n => n.row === r && n.col === c));
+        const el = document.createElement('span');
+        el.className = 'npc';
+        el.textContent = icon;
+        elements.board.appendChild(el);
+        gameState.npcs.push({ row: r, col: c, icon, element: el });
+        positionElement(el, r, c);
+    });
+}
+
+function addCompanion(icon) {
+    const tail = gameState.team[gameState.team.length - 1];
+    const el = document.createElement('div');
+    el.className = 'companion';
+    el.textContent = icon;
+    elements.board.appendChild(el);
+    const member = { row: tail.row, col: tail.col, element: el };
+    gameState.team.push(member);
+    positionElement(el, member.row, member.col);
+}
+
+function moveTeam() {
+    const prev = gameState.team.map(m => ({ row: m.row, col: m.col }));
+    gameState.team[0].row = gameState.row;
+    gameState.team[0].col = gameState.col;
+    for (let i = 1; i < gameState.team.length; i++) {
+        gameState.team[i].row = prev[i - 1].row;
+        gameState.team[i].col = prev[i - 1].col;
+    }
+    gameState.team.forEach(m => positionElement(m.element, m.row, m.col));
+}
+
+function positionTeamMembers() {
+    gameState.team.forEach(m => positionElement(m.element, m.row, m.col));
+    gameState.npcs.forEach(n => positionElement(n.element, n.row, n.col));
+}
+
 function positionPlayer() {
-    const selector = `.cell[data-row="${gameState.row}"][data-col="${gameState.col}"]`;
-    const cell = elements.board.querySelector(selector);
-    const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.player.offsetWidth / 2;
-    const y = cell.offsetTop + cell.offsetHeight / 2 - elements.player.offsetHeight / 2;
-    elements.player.style.transform = `translate(${x}px, ${y}px)`;
+    positionElement(elements.player, gameState.row, gameState.col);
+    const cell = elements.board.querySelector(`.cell[data-row="${gameState.row}"][data-col="${gameState.col}"]`);
     cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     checkGoalVisibility();
 }
 
 function positionFairy() {
     if (!elements.fairy) return;
-    const selector = `.cell[data-row="${gameState.fairyRow}"][data-col="${gameState.fairyCol}"]`;
+    positionElement(elements.fairy, gameState.fairyRow, gameState.fairyCol);
+}
+
+function positionElement(el, row, col) {
+    const selector = `.cell[data-row="${row}"][data-col="${col}"]`;
     const cell = elements.board.querySelector(selector);
-    const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.fairy.offsetWidth / 2;
-    const y = cell.offsetTop + cell.offsetHeight / 2 - elements.fairy.offsetHeight / 2;
-    elements.fairy.style.transform = `translate(${x}px, ${y}px)`;
+    const x = cell.offsetLeft + cell.offsetWidth / 2 - el.offsetWidth / 2;
+    const y = cell.offsetTop + cell.offsetHeight / 2 - el.offsetHeight / 2;
+    el.style.transform = `translate(${x}px, ${y}px)`;
 }
 
 function revealAround(row, col) {
@@ -789,6 +864,16 @@ function chooseDirection(dir) {
 
     gameState.row = row;
     gameState.col = col;
+    moveTeam();
+
+    const npcIdx = gameState.npcs.findIndex(n => n.row === row && n.col === col);
+    if (npcIdx !== -1) {
+        const npc = gameState.npcs[npcIdx];
+        addCompanion(npc.icon);
+        npc.element.remove();
+        gameState.npcs.splice(npcIdx, 1);
+    }
+
     positionPlayer();
     revealAround(row, col);
     updateFog();
@@ -885,7 +970,7 @@ function continueGame() {
 }
 
 function showCharacterModal() {
-    const icons = ['🚀','🐱','🐶','🐰'];
+    const icons = ['👦','🐶','🐔','🐵'];
     elements.charOptions.innerHTML = '';
     icons.forEach(icon => {
         const el = document.createElement('span');
@@ -894,6 +979,8 @@ function showCharacterModal() {
         el.addEventListener('click', () => {
             gameState.playerIcon = icon;
             if (elements.player) elements.player.textContent = icon;
+            gameState.unpicked = icons.filter(i => i !== icon);
+            spawnNPCs();
             elements.charModal.classList.remove('show');
             showDirections();
         });
