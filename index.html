@@ -149,6 +149,14 @@
             font-size: 1.2rem;
         }
 
+        .fairy {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+
         .controls {
             padding: 20px;
             text-align: center;
@@ -581,7 +589,8 @@ const elements = {
     rightBtn: document.getElementById('rightBtn'),
     player: null,
     goalArrow: document.getElementById('goalArrow'),
-    quizToggle: document.getElementById('quizToggle')
+    quizToggle: document.getElementById('quizToggle'),
+    fairy: null
 };
 
 function speak(text) {
@@ -665,8 +674,27 @@ function placeFairy() {
     gameState.fairyCol = c;
     const idx = r * GRID_SIZE + c;
     const cell = elements.board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-    cell.textContent = '🧚';
+    elements.fairy = document.createElement('span');
+    elements.fairy.className = 'fairy';
+    elements.fairy.textContent = '🧚';
+    cell.appendChild(elements.fairy);
     gameState.revealed[idx] = true;
+}
+
+function moveFairyTowardGoal() {
+    if (!elements.fairy) return;
+    const goalR = GRID_SIZE - 1;
+    const goalC = GRID_SIZE - 1;
+    if (gameState.fairyRow === goalR && gameState.fairyCol === goalC) return;
+    const oldCell = elements.fairy.parentElement;
+    oldCell.removeChild(elements.fairy);
+    if (gameState.fairyRow < goalR) gameState.fairyRow++;
+    if (gameState.fairyCol < goalC) gameState.fairyCol++;
+    const newCell = elements.board.querySelector(`.cell[data-row="${gameState.fairyRow}"][data-col="${gameState.fairyCol}"]`);
+    newCell.appendChild(elements.fairy);
+    const idx = gameState.fairyRow * GRID_SIZE + gameState.fairyCol;
+    gameState.revealed[idx] = true;
+    updateFog();
 }
 
 function positionPlayer() {
@@ -750,11 +778,14 @@ function chooseDirection(dir) {
     positionPlayer();
     revealAround(row, col);
     updateFog();
-    if (!gameState.fairyFound && row === gameState.fairyRow && col === gameState.fairyCol) {
-        gameState.fairyFound = true;
-        gameState.showGoalDirection = true;
-        alert('🧚 小仙子：終點在右下角喔！');
-        checkGoalVisibility();
+    if (row === gameState.fairyRow && col === gameState.fairyCol) {
+        if (!gameState.fairyFound) {
+            gameState.fairyFound = true;
+            gameState.showGoalDirection = true;
+            alert('🧚 小仙子：終點在右下角喔！');
+            checkGoalVisibility();
+        }
+        moveFairyTowardGoal();
     }
     updateStats();
     disableDirectionButtons();
