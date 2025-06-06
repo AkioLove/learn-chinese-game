@@ -63,6 +63,19 @@
             overflow: auto;
         }
 
+        .goal-arrow {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            padding: 5px 7px;
+            z-index: 20;
+            display: none;
+            pointer-events: none;
+        }
+
         .cell {
             aspect-ratio: 1;
             border: 2px solid #4a90e2;
@@ -425,6 +438,7 @@
 
         <div class="board" id="board">
             <!-- 棋盤格子將由 JavaScript 生成 -->
+            <div id="goalArrow" class="goal-arrow">↘</div>
         </div>
 
         <div class="controls" id="dirControls">
@@ -541,7 +555,8 @@ const elements = {
     downBtn: document.getElementById('downBtn'),
     leftBtn: document.getElementById('leftBtn'),
     rightBtn: document.getElementById('rightBtn'),
-    player: null
+    player: null,
+    goalArrow: document.getElementById('goalArrow')
 };
 
 function speak(text) {
@@ -563,6 +578,9 @@ function initGame() {
     elements.rightBtn.addEventListener('click', () => chooseDirection('right'));
     showCharacterModal();
     showDirections();
+    elements.board.addEventListener('scroll', checkGoalVisibility);
+    window.addEventListener('resize', checkGoalVisibility);
+    checkGoalVisibility();
 }
 
 const BOARD_LENGTH = GRID_SIZE * GRID_SIZE;
@@ -611,6 +629,7 @@ function positionPlayer() {
     const y = cellRect.top - boardRect.top + cellRect.height / 2 - 15;
     elements.player.style.transform = `translate(${x}px, ${y}px)`;
     cell.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
+    checkGoalVisibility();
 }
 
 function revealAround(row, col) {
@@ -634,6 +653,17 @@ function updateFog() {
             cell.classList.add('fog');
         }
     });
+}
+
+function checkGoalVisibility() {
+    const boardRect = elements.board.getBoundingClientRect();
+    const endCell = elements.board.querySelector('.end-cell');
+    const endRect = endCell.getBoundingClientRect();
+    const visible = endRect.top >= boardRect.top &&
+                    endRect.left >= boardRect.left &&
+                    endRect.bottom <= boardRect.bottom &&
+                    endRect.right <= boardRect.right;
+    elements.goalArrow.style.display = visible ? 'none' : 'block';
 }
 
 function updateStats() {
