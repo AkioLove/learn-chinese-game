@@ -185,6 +185,19 @@
             z-index: 5;
         }
 
+        .riceball {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: none;
+            z-index: 6;
+        }
+
         .controls {
             padding: 20px;
             text-align: center;
@@ -552,7 +565,8 @@
             quizMode: true,
             team: [],
             npcs: [],
-            unpicked: []
+            unpicked: [],
+            riceBalls: []
         };
 
         // 中文字題庫
@@ -655,6 +669,7 @@ function initGame() {
     window.addEventListener('resize', positionPlayer);
     window.addEventListener('resize', positionFairy);
     window.addEventListener('resize', positionTeamMembers);
+    window.addEventListener('resize', positionRiceBalls);
     elements.board.addEventListener('touchstart', onTouchStart, { passive: false });
     elements.board.addEventListener('touchmove', onTouchMove, { passive: false });
     elements.board.addEventListener('touchend', onTouchEnd, { passive: false });
@@ -669,6 +684,7 @@ function createBoard() {
     gameState.revealed = new Array(BOARD_LENGTH).fill(false);
     gameState.team = [];
     gameState.npcs = [];
+    gameState.riceBalls = [];
     for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
             const idx = r * GRID_SIZE + c;
@@ -699,6 +715,7 @@ function createBoard() {
     const endIdx = (GRID_SIZE - 1) * GRID_SIZE + (GRID_SIZE - 1);
     gameState.revealed[endIdx] = true;
     placeFairy();
+    spawnRiceBalls();
     updateFog();
 }
 
@@ -749,6 +766,28 @@ function spawnNPCs() {
     });
 }
 
+function spawnRiceBalls() {
+    for (let i = 0; i < 4; i++) {
+        let r, c;
+        do {
+            r = Math.floor(Math.random() * GRID_SIZE);
+            c = Math.floor(Math.random() * GRID_SIZE);
+        } while (
+            (r === 0 && c === 0) ||
+            (r === GRID_SIZE - 1 && c === GRID_SIZE - 1) ||
+            gameState.riceBalls.some(b => b.row === r && b.col === c) ||
+            gameState.npcs.some(n => n.row === r && n.col === c) ||
+            (r === gameState.fairyRow && c === gameState.fairyCol)
+        );
+        const el = document.createElement('span');
+        el.className = 'riceball';
+        el.textContent = '🍙';
+        elements.board.appendChild(el);
+        gameState.riceBalls.push({ row: r, col: c, element: el });
+        positionElement(el, r, c);
+    }
+}
+
 function addCompanion(icon) {
     const tail = gameState.team[gameState.team.length - 1];
     const el = document.createElement('div');
@@ -774,6 +813,7 @@ function moveTeam() {
 function positionTeamMembers() {
     gameState.team.forEach(m => positionElement(m.element, m.row, m.col));
     gameState.npcs.forEach(n => positionElement(n.element, n.row, n.col));
+    gameState.riceBalls.forEach(b => positionElement(b.element, b.row, b.col));
 }
 
 function positionPlayer() {
@@ -786,6 +826,10 @@ function positionPlayer() {
 function positionFairy() {
     if (!elements.fairy) return;
     positionElement(elements.fairy, gameState.fairyRow, gameState.fairyCol);
+}
+
+function positionRiceBalls() {
+    gameState.riceBalls.forEach(b => positionElement(b.element, b.row, b.col));
 }
 
 function positionElement(el, row, col) {
@@ -872,6 +916,13 @@ function chooseDirection(dir) {
         addCompanion(npc.icon);
         npc.element.remove();
         gameState.npcs.splice(npcIdx, 1);
+    }
+
+    const rbIdx = gameState.riceBalls.findIndex(b => b.row === row && b.col === col);
+    if (rbIdx !== -1) {
+        gameState.stars++;
+        gameState.riceBalls[rbIdx].element.remove();
+        gameState.riceBalls.splice(rbIdx, 1);
     }
 
     positionPlayer();
