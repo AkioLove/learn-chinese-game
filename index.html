@@ -112,10 +112,6 @@
             color: white;
         }
 
-        .end-cell {
-            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
-        }
-
         .fog {
             background: #888;
             color: transparent;
@@ -651,9 +647,6 @@ function initGame() {
     createBoard();
     updateStats();
     gameState.quizMode = elements.quizToggle.checked;
-    const enable = confirm('要啟用問答模式嗎?');
-    gameState.quizMode = enable;
-    elements.quizToggle.checked = enable;
     elements.continueBtn.addEventListener('click', continueGame);
     elements.upBtn.addEventListener('click', () => chooseDirection('up'));
     elements.downBtn.addEventListener('click', () => chooseDirection('down'));
@@ -697,8 +690,8 @@ function createBoard() {
                 cell.textContent = '🚩';
                 cell.classList.add('start-cell');
             } else if (r === GRID_SIZE - 1 && c === GRID_SIZE - 1) {
-                cell.textContent = '🏁';
-                cell.classList.add('end-cell');
+                cell.textContent = '👹';
+                cell.classList.add('boss-cell');
             } else {
                 cell.textContent = '';
             }
@@ -797,6 +790,8 @@ function addCompanion(icon) {
     const member = { row: tail.row, col: tail.col, element: el };
     gameState.team.push(member);
     positionElement(el, member.row, member.col);
+    const sounds = { '🐶': '汪汪', '🐔': '咕咕', '🐵': '吱吱', '👦': '哈摟' };
+    if (sounds[icon]) speak(sounds[icon]);
 }
 
 function moveTeam() {
@@ -869,7 +864,7 @@ function checkGoalVisibility() {
         return;
     }
     const boardRect = elements.board.getBoundingClientRect();
-    const endCell = elements.board.querySelector('.end-cell');
+    const endCell = elements.board.querySelector('.boss-cell');
     const endRect = endCell.getBoundingClientRect();
     const visible = endRect.top >= boardRect.top &&
                     endRect.left >= boardRect.left &&
@@ -911,7 +906,8 @@ function chooseDirection(dir) {
     moveTeam();
 
     const npcIdx = gameState.npcs.findIndex(n => n.row === row && n.col === col);
-    if (npcIdx !== -1) {
+    const encounteredNPC = npcIdx !== -1;
+    if (encounteredNPC) {
         const npc = gameState.npcs[npcIdx];
         addCompanion(npc.icon);
         npc.element.remove();
@@ -939,7 +935,8 @@ function chooseDirection(dir) {
     }
     updateStats();
     disableDirectionButtons();
-    if (gameState.quizMode) {
+    const onBoss = row === GRID_SIZE - 1 && col === GRID_SIZE - 1;
+    if (gameState.quizMode && (encounteredNPC || onBoss)) {
         showQuestionCard();
     } else {
         continueGame();
@@ -1016,7 +1013,7 @@ function continueGame() {
     showDirections();
     positionPlayer();
     if (gameState.row === GRID_SIZE - 1 && gameState.col === GRID_SIZE - 1) {
-        alert('🎉 抵達終點！');
+        alert('🎉 打倒妖怪！');
     }
 }
 
