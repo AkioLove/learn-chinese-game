@@ -656,10 +656,11 @@ function createBoard() {
 
 function placeFairy() {
     let r, c;
+    const maxIndex = Math.min(3, GRID_SIZE);
     do {
-        r = Math.floor(Math.random() * GRID_SIZE);
-        c = Math.floor(Math.random() * GRID_SIZE);
-    } while ((r === 0 && c === 0) || (r === GRID_SIZE - 1 && c === GRID_SIZE - 1));
+        r = Math.floor(Math.random() * maxIndex);
+        c = Math.floor(Math.random() * maxIndex);
+    } while (r === 0 && c === 0);
     gameState.fairyRow = r;
     gameState.fairyCol = c;
     const idx = r * GRID_SIZE + c;
