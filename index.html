@@ -151,10 +151,14 @@
 
         .fairy {
             position: absolute;
-            top: 4px;
-            left: 4px;
+            width: 24px;
+            height: 24px;
             font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
+            transition: none;
         }
 
         .controls {
@@ -606,6 +610,9 @@ function initGame() {
     createBoard();
     updateStats();
     gameState.quizMode = elements.quizToggle.checked;
+    const enable = confirm('要啟用問答模式嗎?');
+    gameState.quizMode = enable;
+    elements.quizToggle.checked = enable;
     elements.continueBtn.addEventListener('click', continueGame);
     elements.upBtn.addEventListener('click', () => chooseDirection('up'));
     elements.downBtn.addEventListener('click', () => chooseDirection('down'));
@@ -619,6 +626,7 @@ function initGame() {
     elements.board.addEventListener('scroll', checkGoalVisibility);
     window.addEventListener('resize', checkGoalVisibility);
     window.addEventListener('resize', positionPlayer);
+    window.addEventListener('resize', positionFairy);
     elements.board.addEventListener('touchstart', onTouchStart, { passive: false });
     elements.board.addEventListener('touchmove', onTouchMove, { passive: false });
     elements.board.addEventListener('touchend', onTouchEnd, { passive: false });
@@ -673,11 +681,11 @@ function placeFairy() {
     gameState.fairyRow = r;
     gameState.fairyCol = c;
     const idx = r * GRID_SIZE + c;
-    const cell = elements.board.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
     elements.fairy = document.createElement('span');
     elements.fairy.className = 'fairy';
     elements.fairy.textContent = '🧚';
-    cell.appendChild(elements.fairy);
+    elements.board.appendChild(elements.fairy);
+    positionFairy();
     gameState.revealed[idx] = true;
 }
 
@@ -686,12 +694,9 @@ function moveFairyTowardGoal() {
     const goalR = GRID_SIZE - 1;
     const goalC = GRID_SIZE - 1;
     if (gameState.fairyRow === goalR && gameState.fairyCol === goalC) return;
-    const oldCell = elements.fairy.parentElement;
-    oldCell.removeChild(elements.fairy);
     if (gameState.fairyRow < goalR) gameState.fairyRow++;
     if (gameState.fairyCol < goalC) gameState.fairyCol++;
-    const newCell = elements.board.querySelector(`.cell[data-row="${gameState.fairyRow}"][data-col="${gameState.fairyCol}"]`);
-    newCell.appendChild(elements.fairy);
+    positionFairy();
     const idx = gameState.fairyRow * GRID_SIZE + gameState.fairyCol;
     gameState.revealed[idx] = true;
     updateFog();
@@ -705,6 +710,15 @@ function positionPlayer() {
     elements.player.style.transform = `translate(${x}px, ${y}px)`;
     cell.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     checkGoalVisibility();
+}
+
+function positionFairy() {
+    if (!elements.fairy) return;
+    const selector = `.cell[data-row="${gameState.fairyRow}"][data-col="${gameState.fairyCol}"]`;
+    const cell = elements.board.querySelector(selector);
+    const x = cell.offsetLeft + cell.offsetWidth / 2 - elements.fairy.offsetWidth / 2;
+    const y = cell.offsetTop + cell.offsetHeight / 2 - elements.fairy.offsetHeight / 2;
+    elements.fairy.style.transform = `translate(${x}px, ${y}px)`;
 }
 
 function revealAround(row, col) {
