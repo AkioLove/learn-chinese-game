@@ -790,7 +790,7 @@ function addCompanion(icon) {
     const member = { row: tail.row, col: tail.col, element: el };
     gameState.team.push(member);
     positionElement(el, member.row, member.col);
-    const sounds = { '🐶': '汪汪', '🐔': '咕咕', '🐵': '吱吱', '👦': '哈摟' };
+    const sounds = { '🦮': '汪汪', '🐔': '咕咕', '🐵': '吱吱', '👦': '哈摟' };
     if (sounds[icon]) speak(sounds[icon]);
 }
 
@@ -1018,7 +1018,7 @@ function continueGame() {
 }
 
 function showCharacterModal() {
-    const icons = ['👦','🐶','🐔','🐵'];
+    const icons = ['👦','🦮','🐔','🐵'];
     elements.charOptions.innerHTML = '';
     icons.forEach(icon => {
         const el = document.createElement('span');
