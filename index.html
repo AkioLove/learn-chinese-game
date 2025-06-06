@@ -428,8 +428,6 @@
     <div class="modal" id="modal">
         <div class="card">
 
-            <div class="chinese-char" id="chineseChar"></div>
-
             <div class="char-wrapper">
                 <div class="chinese-char" id="chineseChar"></div>
                 <button class="speak-btn" id="speakBtn" aria-label="播放發音">🎵</button>
@@ -504,7 +502,6 @@
             { char: '門', correct: 'ㄇㄣˊ', options: ['ㄇㄣˊ', 'ㄇㄥˊ', 'ㄇㄢˊ'] },
             { char: '閉', correct: 'ㄅㄧˋ', options: ['ㄅㄧˋ', 'ㄆㄧˋ', 'ㄅㄧㄝˋ'] }
         ];
-<script>
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -543,16 +540,6 @@ function speak(text) {
     }
 }
 
-let gameState = {
-    row: 0,
-    col: 0,
-    stars: 0,
-    correctAnswers: 0,
-    currentQuestion: null,
-    answered: false,
-    playerIcon: '🚀',
-    completed: []
-};
 
 function initGame() {
     createBoard();
