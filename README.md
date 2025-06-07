@@ -22,5 +22,16 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 
 - Pure HTML, CSS and vanilla JavaScript
 - Uses the [pinyin4js](https://github.com/commonsense/pinyin4js) library via CDN to convert any Chinese character to zhuyin
+  Include it in `index.html` with:
+
+  ```html
+  <script src="https://cdn.jsdelivr.net/npm/pinyin4js/dist/pinyin4js.min.js"></script>
+  ```
+
+  Then call `PinyinHelper.convertToBopomofoString()` to obtain zhuyin, e.g.:
+
+  ```javascript
+  const bopomofo = PinyinHelper.convertToBopomofoString('你好', '', PinyinFormat.WITH_TONE_MARK);
+  ```
 
 Enjoy learning!
