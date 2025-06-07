@@ -877,6 +877,8 @@ function checkGoalVisibility() {
                     endRect.left >= boardRect.left &&
                     endRect.bottom <= boardRect.bottom &&
                     endRect.right <= boardRect.right;
+    elements.goalArrow.style.display = visible ? 'none' : 'block';
+}
 function updateStats() {
     elements.hearts.textContent = "❤️".repeat(gameState.hp);
     elements.riceballs.textContent = gameState.riceballCount;
