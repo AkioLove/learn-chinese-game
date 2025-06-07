@@ -465,6 +465,15 @@
             transform: scale(1.2);
         }
 
+        .word-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
         .hidden {
             display: none;
         }
@@ -541,7 +550,9 @@
     <!-- 選擇角色模態框 -->
     <div class="modal" id="charModal">
         <div class="card">
-            <h2>選擇角色</h2>
+            <h2>輸入要測試的國字</h2>
+            <input id="wordInput" class="word-input" placeholder="例如: 白 大 小">
+            <h3 style="margin-top:20px;">選擇角色</h3>
             <div class="char-options" id="charOptions"></div>
         </div>
     </div>
@@ -572,42 +583,59 @@
             riceBalls: []
         };
 
-        // 中文字題庫
-        const questions = [
-            { char: '白', correct: 'ㄅㄞˊ', options: ['ㄅㄞˊ', 'ㄆㄞˊ', 'ㄇㄞˊ'] },
-            { char: '大', correct: 'ㄉㄚˋ', options: ['ㄉㄚˋ', 'ㄊㄚˋ', 'ㄌㄚˋ'] },
-            { char: '小', correct: 'ㄒㄧㄠˇ', options: ['ㄒㄧㄠˇ', 'ㄓㄧㄠˇ', 'ㄔㄧㄠˇ'] },
-            { char: '長', correct: 'ㄔㄤˊ', options: ['ㄔㄤˊ', 'ㄓㄤˊ', 'ㄕㄤˊ'] },
-            { char: '短', correct: 'ㄉㄨㄢˇ', options: ['ㄉㄨㄢˇ', 'ㄊㄨㄢˇ', 'ㄋㄨㄢˇ'] },
-            { char: '高', correct: 'ㄍㄠ', options: ['ㄍㄠ', 'ㄎㄠ', 'ㄏㄠ'] },
-            { char: '低', correct: 'ㄉㄧ', options: ['ㄉㄧ', 'ㄊㄧ', 'ㄋㄧ'] },
-            { char: '好', correct: 'ㄏㄠˇ', options: ['ㄏㄠˇ', 'ㄍㄠˇ', 'ㄎㄠˇ'] },
-            { char: '壞', correct: 'ㄏㄨㄞˋ', options: ['ㄏㄨㄞˋ', 'ㄍㄨㄞˋ', 'ㄎㄨㄞˋ'] },
-            { char: '快', correct: 'ㄎㄨㄞˋ', options: ['ㄎㄨㄞˋ', 'ㄍㄨㄞˋ', 'ㄏㄨㄞˋ'] },
-            { char: '慢', correct: 'ㄇㄢˋ', options: ['ㄇㄢˋ', 'ㄋㄢˋ', 'ㄌㄢˋ'] },
-            { char: '新', correct: 'ㄒㄧㄣ', options: ['ㄒㄧㄣ', 'ㄓㄧㄣ', 'ㄔㄧㄣ'] },
-            { char: '舊', correct: 'ㄐㄧㄡˋ', options: ['ㄐㄧㄡˋ', 'ㄑㄧㄡˋ', 'ㄒㄧㄡˋ'] },
-            { char: '多', correct: 'ㄉㄨㄛ', options: ['ㄉㄨㄛ', 'ㄊㄨㄛ', 'ㄋㄨㄛ'] },
-            { char: '少', correct: 'ㄕㄠˇ', options: ['ㄕㄠˇ', 'ㄓㄠˇ', 'ㄔㄠˇ'] },
-            { char: '人', correct: 'ㄖㄣˊ', options: ['ㄖㄣˊ', 'ㄏㄣˊ', 'ㄇㄣˊ'] },
-            { char: '心', correct: 'ㄒㄧㄣ', options: ['ㄒㄧㄣ', 'ㄑㄧㄣ', 'ㄔㄧㄣ'] },
-            { char: '有', correct: 'ㄧㄡˇ', options: ['ㄧㄡˇ', 'ㄧㄡˋ', 'ㄧㄠˇ'] },
-            { char: '個', correct: 'ㄍㄜˋ', options: ['ㄍㄜˋ', 'ㄎㄜˋ', 'ㄍㄚˋ'] },
-            { char: '不', correct: 'ㄅㄨˋ', options: ['ㄅㄨˋ', 'ㄆㄨˋ', 'ㄅㄧˋ'] },
-            { char: '手', correct: 'ㄕㄡˇ', options: ['ㄕㄡˇ', 'ㄒㄧㄡˇ', 'ㄕㄡˋ'] },
-            { char: '看', correct: 'ㄎㄢˋ', options: ['ㄎㄢˋ', 'ㄏㄢˋ', 'ㄎㄤˋ'] },
-            { char: '課', correct: 'ㄎㄜˋ', options: ['ㄎㄜˋ', 'ㄍㄜˋ', 'ㄎㄞˋ'] },
-            { char: '朋友', correct: 'ㄆㄥˊㄧㄡˇ', options: ['ㄆㄥˊㄧㄡˇ', 'ㄆㄧㄥˊㄧㄡˇ', 'ㄆㄥˊㄧㄠˇ'] },
-            { char: '玩', correct: 'ㄨㄢˊ', options: ['ㄨㄢˊ', 'ㄨㄢˋ', 'ㄨㄣˊ'] },
-            { char: '多少', correct: 'ㄉㄨㄛㄕㄠˇ', options: ['ㄉㄨㄛㄕㄠˇ', 'ㄉㄨㄛㄕㄠˋ', 'ㄊㄨㄛㄕㄠˇ'] },
-            { char: '早', correct: 'ㄗㄠˇ', options: ['ㄗㄠˇ', 'ㄗㄠˋ', 'ㄘㄠˇ'] },
-            { char: '起', correct: 'ㄑㄧˇ', options: ['ㄑㄧˇ', 'ㄑㄧˋ', 'ㄎㄧˇ'] },
-            { char: '走路', correct: 'ㄗㄡˇㄌㄨˋ', options: ['ㄗㄡˇㄌㄨˋ', 'ㄘㄡˇㄌㄨˋ', 'ㄗㄡˇㄌㄨˇ'] },
-            { char: '開', correct: 'ㄎㄞ', options: ['ㄎㄞ', 'ㄍㄞ', 'ㄎㄠ'] },
-            { char: '好的', correct: 'ㄏㄠˇㄉㄜ', options: ['ㄏㄠˇㄉㄜ', 'ㄏㄠˇㄊㄜ', 'ㄏㄠˋㄉㄜ'] },
-            { char: '門', correct: 'ㄇㄣˊ', options: ['ㄇㄣˊ', 'ㄇㄥˊ', 'ㄇㄢˊ'] },
-            { char: '閉', correct: 'ㄅㄧˋ', options: ['ㄅㄧˋ', 'ㄆㄧˋ', 'ㄅㄧㄝˋ'] }
-        ];
+        // 注音字典
+        const zhuyinDict = {
+            '白': 'ㄅㄞˊ',
+            '大': 'ㄉㄚˋ',
+            '小': 'ㄒㄧㄠˇ',
+            '長': 'ㄔㄤˊ',
+            '短': 'ㄉㄨㄢˇ',
+            '高': 'ㄍㄠ',
+            '低': 'ㄉㄧ',
+            '好': 'ㄏㄠˇ',
+            '壞': 'ㄏㄨㄞˋ',
+            '快': 'ㄎㄨㄞˋ',
+            '慢': 'ㄇㄢˋ',
+            '新': 'ㄒㄧㄣ',
+            '舊': 'ㄐㄧㄡˋ',
+            '多': 'ㄉㄨㄛ',
+            '少': 'ㄕㄠˇ',
+            '人': 'ㄖㄣˊ',
+            '心': 'ㄒㄧㄣ',
+            '有': 'ㄧㄡˇ',
+            '個': 'ㄍㄜˋ',
+            '不': 'ㄅㄨˋ',
+            '手': 'ㄕㄡˇ',
+            '看': 'ㄎㄢˋ',
+            '課': 'ㄎㄜˋ',
+            '朋友': 'ㄆㄥˊㄧㄡˇ',
+            '玩': 'ㄨㄢˊ',
+            '多少': 'ㄉㄨㄛㄕㄠˇ',
+            '早': 'ㄗㄠˇ',
+            '起': 'ㄑㄧˇ',
+            '走路': 'ㄗㄡˇㄌㄨˋ',
+            '開': 'ㄎㄞ',
+            '好的': 'ㄏㄠˇㄉㄜ',
+            '門': 'ㄇㄣˊ',
+            '閉': 'ㄅㄧˋ'
+        };
+
+        let questions = [];
+        const allZhuyin = Array.from(new Set(Object.values(zhuyinDict)));
+
+        function buildQuestions(words) {
+            questions = [];
+            words.forEach(w => {
+                const correct = zhuyinDict[w];
+                if (!correct) return;
+                const opts = [correct];
+                while (opts.length < 3) {
+                    const z = allZhuyin[Math.floor(Math.random() * allZhuyin.length)];
+                    if (!opts.includes(z)) opts.push(z);
+                }
+                questions.push({ char: w, correct, options: opts });
+            });
+        }
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -628,6 +656,7 @@ const elements = {
     continueBtn: document.getElementById('continueBtn'),
     charModal: document.getElementById('charModal'),
     charOptions: document.getElementById('charOptions'),
+    wordInput: document.getElementById('wordInput'),
     hearts: document.getElementById("hearts"),
     riceballs: document.getElementById("riceballs"),
     correct: document.getElementById('correct'),
@@ -1029,6 +1058,13 @@ function showCharacterModal() {
         el.className = 'char-option';
         el.textContent = icon;
         el.addEventListener('click', () => {
+            const input = elements.wordInput.value.trim();
+            const words = input ? input.split(/\s+/).filter(Boolean) : Object.keys(zhuyinDict);
+            buildQuestions(words);
+            if (questions.length === 0) {
+                alert('沒有找到對應的注音，請重新輸入');
+                return;
+            }
             gameState.playerIcon = icon;
             if (elements.player) elements.player.textContent = icon;
             gameState.unpicked = icons.filter(i => i !== icon);
