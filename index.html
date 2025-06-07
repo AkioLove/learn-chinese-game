@@ -490,6 +490,7 @@
             100% { transform: scale(1); opacity: 1; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/pinyin4js@2.2.0/dist/pinyin4js.min.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -621,16 +622,30 @@
         };
 
         let questions = [];
-        const allZhuyin = Array.from(new Set(Object.values(zhuyinDict)));
+        const zhuyinSet = new Set(Object.values(zhuyinDict));
 
         function buildQuestions(words) {
             questions = [];
             words.forEach(w => {
-                const correct = zhuyinDict[w];
+                let correct = zhuyinDict[w];
+                if (!correct && window.PinyinHelper) {
+                    try {
+                        if (PinyinHelper.convertToBopomofoString) {
+                            correct = PinyinHelper.convertToBopomofoString(w, '', PinyinFormat.WITH_TONE_MARK);
+                        } else {
+                            const result = PinyinHelper.convertToBopomofo(w);
+                            correct = Array.isArray(result) ? result.join('') : result;
+                        }
+                    } catch (e) {
+                        correct = null;
+                    }
+                }
                 if (!correct) return;
+                zhuyinSet.add(correct);
                 const opts = [correct];
+                const zhArr = Array.from(zhuyinSet);
                 while (opts.length < 3) {
-                    const z = allZhuyin[Math.floor(Math.random() * allZhuyin.length)];
+                    const z = zhArr[Math.floor(Math.random() * zhArr.length)];
                     if (!opts.includes(z)) opts.push(z);
                 }
                 questions.push({ char: w, correct, options: opts });

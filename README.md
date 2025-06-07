@@ -21,6 +21,6 @@ A simple browser game for kids to learn basic Chinese characters using a board-g
 ## Tech
 
 - Pure HTML, CSS and vanilla JavaScript
-- No external CDN dependencies, so it works offline
+- Uses the [pinyin4js](https://github.com/commonsense/pinyin4js) library via CDN to convert any Chinese character to zhuyin
 
 Enjoy learning!
