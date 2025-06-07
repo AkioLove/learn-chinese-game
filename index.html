@@ -54,6 +54,11 @@
             color: #ffd700;
             font-size: 1.2rem;
         }
+        .hearts {
+            color: #e25555;
+            font-size: 1.2rem;
+        }
+
 
         .board {
             --cell-size: 100px;
@@ -486,12 +491,12 @@
 
         <div class="stats">
             <div class="stat-item">
-                <div>位置</div>
-                <div id="position">1</div>
+                <div>血量</div>
+                <div class="hearts" id="hearts">❤️❤️❤️</div>
             </div>
             <div class="stat-item">
-                <div>星星</div>
-                <div class="stars"><span id="stars">0</span> ⭐</div>
+                <div>飯糰</div>
+                <div><span id="riceballs">0</span> 🍙</div>
             </div>
             <div class="stat-item">
                 <div>答對</div>
@@ -548,6 +553,7 @@
             row: 0,
             col: 0,
             stars: 0,
+            hp: 3,
             correctAnswers: 0,
             currentQuestion: null,
             answered: false,
@@ -562,6 +568,7 @@
             team: [],
             npcs: [],
             unpicked: [],
+            riceballCount: 0,
             riceBalls: []
         };
 
@@ -621,8 +628,8 @@ const elements = {
     continueBtn: document.getElementById('continueBtn'),
     charModal: document.getElementById('charModal'),
     charOptions: document.getElementById('charOptions'),
-    position: document.getElementById('position'),
-    stars: document.getElementById('stars'),
+    hearts: document.getElementById("hearts"),
+    riceballs: document.getElementById("riceballs"),
     correct: document.getElementById('correct'),
     upBtn: document.getElementById('upBtn'),
     downBtn: document.getElementById('downBtn'),
@@ -870,12 +877,9 @@ function checkGoalVisibility() {
                     endRect.left >= boardRect.left &&
                     endRect.bottom <= boardRect.bottom &&
                     endRect.right <= boardRect.right;
-    elements.goalArrow.style.display = visible ? 'none' : 'block';
-}
-
 function updateStats() {
-    elements.position.textContent = gameState.row * GRID_SIZE + gameState.col + 1;
-    elements.stars.textContent = gameState.stars;
+    elements.hearts.textContent = "❤️".repeat(gameState.hp);
+    elements.riceballs.textContent = gameState.riceballCount;
     elements.correct.textContent = gameState.correctAnswers;
 }
 
@@ -916,11 +920,11 @@ function chooseDirection(dir) {
 
     const rbIdx = gameState.riceBalls.findIndex(b => b.row === row && b.col === col);
     if (rbIdx !== -1) {
-        gameState.stars++;
+        if (gameState.hp < 3) gameState.hp++;
+        gameState.riceballCount++;
         gameState.riceBalls[rbIdx].element.remove();
         gameState.riceBalls.splice(rbIdx, 1);
     }
-
     positionPlayer();
     revealAround(row, col);
     updateFog();
@@ -987,9 +991,8 @@ function selectAnswer(answer) {
 
     const idx = gameState.row * GRID_SIZE + gameState.col;
     if (isCorrect) {
-        gameState.stars++;
         gameState.correctAnswers++;
-        elements.result.textContent = '🎉 答對了！獲得一顆星星！';
+        elements.result.textContent = '🎉 答對了！';
         elements.result.className = 'result show correct';
         if (!gameState.completed[idx]) {
             const cell = elements.board.querySelector(`.cell[data-row="${gameState.row}"][data-col="${gameState.col}"]`);
@@ -997,16 +1000,15 @@ function selectAnswer(answer) {
             mark.className = 'checkmark';
             mark.textContent = '✔';
             cell.appendChild(mark);
-            gameState.completed[idx] = true;
         }
     } else {
-        elements.result.textContent = '😊 再接再厲！';
-        elements.result.className = 'result show wrong';
+        gameState.hp = Math.max(0, gameState.hp - 1);
+        elements.result.textContent = "😊 再接再厲！";
+        elements.result.className = "result show wrong";
     }
-    elements.continueBtn.classList.add('show');
+    elements.continueBtn.classList.add("show");
     updateStats();
 }
-
 function continueGame() {
     elements.modal.classList.remove('show');
     gameState.currentQuestion = null;
